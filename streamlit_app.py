@@ -2,7 +2,7 @@ import streamlit as st
 import openai
 
 # Set up the page
-st.title('Simple Chatbot with OpenAI')
+st.title('GPT-4 Chatbot with OpenAI')
 
 # Sidebar for API key input
 with st.sidebar:
@@ -27,16 +27,15 @@ if st.button("Send"):
     try:
         # Call to OpenAI's API
         response = openai.Completion.create(
-          model="text-davinci-003",
+          model="gpt-4.0-turbo",  # Specify GPT-4 here
           prompt=user_input,
           max_tokens=150
         )
         reply = response.choices[0].text.strip()
         st.session_state['messages'].append("Bot: " + reply)
     except Exception as e:
-        st.error("Error in calling OpenAI API. Check your API key and usage limits.")
+        st.error(f"Error in calling OpenAI API: {str(e)}")
 
 # Display chat history
 for message in st.session_state['messages']:
     st.text(message)
-
