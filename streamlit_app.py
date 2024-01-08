@@ -1,28 +1,42 @@
-import openai
 import streamlit as st
+import openai
+
+# Set up the page
+st.title('Simple Chatbot with OpenAI')
+
+# Sidebar for API key input
 with st.sidebar:
-    openai_api_key = st.text_input("OpenAI API Key", key="chatbot_api_key", type="password")
-    "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
-    "[View the source code](https://github.com/streamlit/llm-examples/blob/main/Chatbot.py)"
-    "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
+    openai_api_key = st.text_input("Enter your OpenAI API key", type="password")
 
-st.title("💬 Chatbot")
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+# Check if the API key is entered
+if not openai_api_key:
+    st.warning("Please enter your OpenAI API key in the sidebar to continue.")
+    st.stop()
 
+# Setting OpenAI API key
+openai.api_key = openai_api_key
 
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
+# Chat UI
+if 'messages' not in st.session_state:
+    st.session_state['messages'] = []
 
-if prompt := st.chat_input():
-    if not openai_api_key:
-        st.info("Please add your OpenAI API key to continue.")
-        st.stop()
+user_input = st.text_input("You: ", key="user_input")
 
-    openai.api_key = openai_api_key
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user").write(prompt)
-    response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
-    msg = response.choices[0].message
-    st.session_state.messages.append(msg)
-    st.chat_message("assistant").write(msg.content)
+if st.button("Send"):
+    st.session_state['messages'].append("You: " + user_input)
+    try:
+        # Call to OpenAI's API
+        response = openai.Completion.create(
+          model="text-davinci-003",
+          prompt=user_input,
+          max_tokens=150
+        )
+        reply = response.choices[0].text.strip()
+        st.session_state['messages'].append("Bot: " + reply)
+    except Exception as e:
+        st.error("Error in calling OpenAI API. Check your API key and usage limits.")
+
+# Display chat history
+for message in st.session_state['messages']:
+    st.text(message)
+
